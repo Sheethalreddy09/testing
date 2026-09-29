@@ -1,0 +1,16 @@
+{
+  "removed_unreachable_frontend_files": [
+    "frontend/src/features/platform/analytics/GeminiSummaryCard.tsx",
+    "frontend/src/features/platform/audit/AuditInspectModal.tsx",
+    "frontend/src/features/platform/audit/AuditLogsTable.tsx",
+    "frontend/src/features/platform/organisations/CreateOrganisationModal.tsx",
+    "frontend/src/features/platform/organisations/OrganisationFilters.tsx",
+    "frontend/src/features/platform/organisations/OrganisationStatusBadge.tsx",
+    "frontend/src/features/platform/organisations/OrganisationTable.tsx",
+    "frontend/src/features/platform/organisations/SuspendOrganisationModal.tsx",
+    "frontend/src/features/platform/tokens/AdjustTokensModal.tsx",
+    "frontend/src/features/platform/tokens/TokenBalanceTable.tsx",
+    "frontend/src/features/platform/tokens/TokenLedgerTable.tsx",
+    "frontend/src/services/mockData.ts"
+  ]
+}

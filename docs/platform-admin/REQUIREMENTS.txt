@@ -1,0 +1,920 @@
+You are working on the existing Clyptus Software Solutions Job Portal repository.
+
+This is a REAL company project.
+
+The repository already contains a WORKING Platform Super Admin portal and a partially implemented Platform Admin portal.
+
+Your task is to COMPLETE and POLISH the PLATFORM ADMIN PORTAL using the requirements below.
+
+==================================================
+PRIMARY GOAL
+==================================================
+
+Complete the Platform Admin portal without breaking, duplicating, replacing, or unnecessarily modifying the existing Platform Super Admin implementation.
+
+The final architecture must remain:
+
+ONE PLATFORM PORTAL
+
+with:
+
+PLATFORM_SUPER_ADMIN
++
+PLATFORM_ADMIN
+
+using:
+
+SHARED CODE
++
+SHARED DOMAIN SERVICES
++
+SHARED AUTH/RBAC
++
+PERMISSION-BASED ACCESS
++
+ROLE-SPECIFIC FEATURES ONLY WHERE NECESSARY
+
+The Platform Admin implementation must also be structured so that the future ORGANISATION SUPER ADMIN module can integrate cleanly with it.
+
+==================================================
+FIRST STEP — INSPECT EXISTING REPOSITORY
+==================================================
+
+BEFORE writing code:
+
+Inspect the entire existing repository carefully.
+
+Identify:
+
+- Current frontend structure
+- Current backend structure
+- Existing Platform Super Admin implementation
+- Existing Platform Admin implementation
+- Existing PlatformLayout
+- Existing routing
+- Existing authentication/login
+- Existing RBAC
+- Existing permission system
+- Existing API client/services
+- Existing Prisma schema
+- Existing organisation module
+- Existing token module
+- Existing audit module
+- Existing analytics
+- Existing security logic
+- Existing shared components
+- Existing mock/dev code
+- Existing tests
+- Existing documentation
+
+Do NOT immediately generate a second Admin application.
+
+Do NOT duplicate existing shared functionality.
+
+Use the existing repository as the source of truth.
+
+==================================================
+STRICT DEVELOPMENT RULES
+==================================================
+
+DO NOT create:
+
+- A separate Platform Admin application
+- A separate Admin backend
+- A separate Admin API client
+- A duplicate PlatformLayout
+- Duplicate organisation services
+- Duplicate token services
+- Duplicate analytics systems
+- Duplicate audit systems
+- Duplicate types/interfaces where shared ones already exist
+- Separate /platform-admin/* APIs when /platform/* can be permission controlled
+
+Prefer:
+
+SHARED FEATURE = SHARED CODE
+
+DIFFERENT ACCESS = DIFFERENT PERMISSION
+
+ADMIN-SPECIFIC FEATURE = ADMIN-SPECIFIC CODE ONLY WHEN GENUINELY REQUIRED
+
+Do not disturb working Platform Super Admin features.
+
+If a shared file must be modified, make the smallest backward-compatible change possible.
+
+==================================================
+PLATFORM ADMIN COMPLETE REQUIREMENTS
+==================================================
+
+3.1 PLATFORM ADMIN DASHBOARD
+
+The Platform Admin Dashboard must display:
+
+- Total organizations
+- Active organizations
+- Pending organizations
+- Suspended organizations
+- Total users
+- Candidates
+- Recruiters
+- Jobs
+- Applications
+- Interviews
+- Offers
+- Token sales
+- Token usage
+- Moderation queue
+- Support queue
+- Recent platform activity
+
+Use real backend data where available.
+
+Do NOT hardcode fake production statistics.
+
+If another business domain is not implemented yet, create a clean integration contract/interface rather than creating duplicate fake domain models.
+
+==================================================
+3.2 ORGANIZATION MANAGEMENT
+==================================================
+
+Platform Admin must be able to:
+
+- Create organizations
+- View organizations
+- Search organizations
+- Update organization information
+- Review organization status
+- Verify organizations
+- Reject verification
+- Suspend organizations
+- Reactivate organizations
+- Deactivate organizations where authorized
+- View organization members
+- View organization activity
+
+Reuse the existing shared organisation domain/service/components.
+
+Do NOT create PlatformAdminOrganizationService if the existing organisation service can be extended.
+
+All sensitive actions must be permission controlled and audited.
+
+==================================================
+3.3 ORGANIZATION ONBOARDING
+==================================================
+
+Implement:
+
+- Create organization records
+- Set organization status
+- Set organization information
+- Create/provision initial organization administration flow
+- Review onboarding status
+
+The onboarding architecture must support future Organisation Super Admin integration.
+
+Do NOT implement the Organisation Super Admin portal itself.
+
+Create clear contracts/integration points for:
+
+Organisation creation
+→ Initial organisation admin provisioning
+→ Verification
+→ Activation
+→ Future Organisation Super Admin ownership
+
+==================================================
+3.4 ORGANIZATION MONITORING
+==================================================
+
+Platform Admin must be able to view:
+
+- Organization activity
+- Organization jobs
+- Organization recruitment activity
+- Organization token usage
+- Organization-level analytics
+- Organization status
+
+Where Jobs / Applications / Interviews / Offers belong to another domain/team, consume their shared service/API/contracts.
+
+Do NOT create duplicate job/application/interview/offer business domains inside Platform Admin.
+
+==================================================
+3.5 PLATFORM TOKEN OPERATIONS
+==================================================
+
+Implement/reuse:
+
+- View token packages
+- Manage token packages where permission allows
+- View token sales
+- View organization token balances
+- View token consumption
+- Review token transactions
+- Process authorized token adjustments
+- Monitor token activity
+
+Preserve the existing immutable token ledger approach.
+
+Never directly change token balances without a token transaction/ledger record.
+
+==================================================
+3.6 TOKEN SYSTEM ADMINISTRATION
+==================================================
+
+Platform Admin must support, when permission allows:
+
+- Add/update token packages
+- Manage token allocation rules
+- Review token purchase history
+- Review token usage by organization
+- Review token usage by feature
+- Investigate token discrepancies
+
+Token operations must be:
+
+- Authorized
+- Audited
+- Transactional where required
+- Traceable
+
+Do not bypass payment verification or the approved token accounting system.
+
+==================================================
+3.7 JOB MODERATION
+==================================================
+
+Implement Platform Admin Job Moderation.
+
+Features:
+
+- View jobs
+- Search jobs
+- Review flagged jobs
+- Review reported jobs
+- Moderate jobs
+- Restrict problematic jobs
+- Suspend job postings where policy permits
+- Review moderation history
+
+Suggested Platform route:
+
+/platform/moderation/jobs
+
+Every moderation action must record:
+
+- Actor
+- Job
+- Action
+- Reason
+- Timestamp
+- Relevant metadata
+
+Use the shared Jobs domain when available.
+
+Do NOT create a parallel job system.
+
+==================================================
+3.8 ORGANIZATION VERIFICATION
+==================================================
+
+Implement a proper verification workflow.
+
+Platform Admin must be able to:
+
+- Review verification requests
+- Approve organizations
+- Reject organizations
+- Request additional information
+- Review verification history
+
+Verification must NOT be treated as the same operation as ordinary activation.
+
+Use explicit status transitions.
+
+Example concept:
+
+PENDING_VERIFICATION
+→ APPROVED / ACTIVE
+
+PENDING_VERIFICATION
+→ REJECTED
+
+PENDING_VERIFICATION
+→ MORE_INFORMATION_REQUIRED
+
+Record complete verification history.
+
+Add permissions such as the repository naming convention equivalent of:
+
+platform.organisations.verify
+platform.organisations.reject
+
+Do not blindly use these names if the project already follows another permission convention.
+
+==================================================
+3.9 USER ADMINISTRATION
+==================================================
+
+Implement Platform User Administration.
+
+Platform Admin must be able to:
+
+- View users
+- Search users
+- Filter users
+- Review account status
+- Suspend users where authorized
+- Reactivate users where authorized
+- Review relevant user activity
+
+This area is for NON-PRIVILEGED platform users unless explicit permission says otherwise.
+
+A normal Platform Admin must NOT:
+
+- Promote themselves to Super Admin
+- Create Super Admins
+- Modify Super Admin authority
+- Bypass role restrictions
+
+All privilege checks must happen on the backend.
+
+==================================================
+3.10 PLATFORM ANALYTICS
+==================================================
+
+Expand Platform Analytics to include:
+
+- User analytics
+- Organization analytics
+- Job analytics
+- Application analytics
+- Recruitment funnel
+- Token analytics
+- Moderation analytics
+- Support analytics
+
+Reuse the existing analytics infrastructure.
+
+Do NOT build separate analytics engines for Admin and Super Admin.
+
+Permissions determine the visible dataset and available actions.
+
+==================================================
+3.11 SUPPORT OPERATIONS
+==================================================
+
+Build the Support Operations module.
+
+Platform Admin must be able to:
+
+- View support cases
+- Review user issues
+- Review organization issues
+- Handle support cases
+- Escalate critical cases
+- Track support status
+
+Create a clean shared support domain.
+
+Possible lifecycle may include:
+
+OPEN
+IN_PROGRESS
+ESCALATED
+RESOLVED
+CLOSED
+
+BUT inspect existing conventions before finalizing enums/statuses.
+
+Support must allow future integration with:
+
+- Candidate portal
+- Recruiter portal
+- Organisation portal
+- Organisation Super Admin
+- Platform Super Admin escalation
+
+Critical cases should be escalatable to privileged Platform/Super Admin handling.
+
+==================================================
+3.12 NOTIFICATIONS
+==================================================
+
+Implement Platform notifications supporting:
+
+- Platform alerts
+- Organization verification alerts
+- Moderation alerts
+- Token alerts
+- Payment alerts
+- Support alerts
+- Security notifications
+
+Use one shared notification infrastructure.
+
+Do NOT create a separate Admin-only notification system if notifications can later support other portals.
+
+Support:
+
+- Read/unread state
+- Notification category/type
+- Timestamp
+- Related entity/reference where appropriate
+
+Integrate with the existing Platform header/notification UI where possible.
+
+Real-time/WebSocket delivery should only be added if existing project infrastructure supports it cleanly.
+
+==================================================
+3.13 AUDIT LOGS
+==================================================
+
+Reuse the existing centralized audit infrastructure.
+
+Platform Admin must be able to review permitted:
+
+- Platform audit logs
+- Organization administration actions
+- Moderation actions
+- Token actions
+- Privileged actions
+
+Audit records must remain immutable from normal application workflows.
+
+Never allow Platform Admin to:
+
+- Delete audit history
+- Edit audit history
+- Rewrite audit history
+
+Sensitive data must not be stored in audit metadata.
+
+==================================================
+3.14 PLATFORM REPORTS & EXPORTS
+==================================================
+
+Implement reporting/export functionality.
+
+Platform Admin must be able to generate permitted:
+
+- Organization reports
+- Token reports
+- Moderation reports
+- User reports
+- Recruitment reports
+
+Support export of permitted platform data.
+
+Exports MUST obey exactly the same authorization/data-scope restrictions as normal APIs.
+
+An export endpoint must never become a way to bypass permissions.
+
+Use clean report services instead of putting export business logic directly inside React components.
+
+==================================================
+PLATFORM SUPER ADMIN SECURITY BOUNDARIES
+==================================================
+
+Platform Admin must NOT be able to perform the following without explicitly granted privileged authority:
+
+- Create Platform Super Admin accounts
+- Modify Platform Super Admin accounts
+- Grant themselves Super Admin privileges
+- Modify highest-level security controls
+- Access infrastructure secrets
+- Modify infrastructure secrets
+- Bypass payment verification
+- Directly mint/create tokens outside approved accounting
+- Modify token balances outside the ledger system
+- Delete audit history
+- Alter audit history
+- Access organization-private data beyond authorized platform administration
+- Bypass resource-level authorization
+- Directly modify production database records as an application workflow
+
+Backend enforcement is mandatory.
+
+Do NOT rely only on hidden frontend buttons.
+
+==================================================
+AUTHENTICATION / LOGIN
+==================================================
+
+Preserve the currently working Platform login implementation unless there is an actual defect.
+
+Platform Super Admin and Platform Admin must use the same Platform login/portal architecture.
+
+Do NOT create separate independent login applications.
+
+Authentication should resolve:
+
+- User
+- Role
+- Permissions
+
+After login:
+
+PLATFORM_SUPER_ADMIN
+→ full permitted Platform authority
+
+PLATFORM_ADMIN
+→ explicitly assigned permissions
+
+Do not break currently working login/logout/session behavior.
+
+==================================================
+PLATFORM ADMIN SIDEBAR / NAVIGATION
+==================================================
+
+Create a clean permission-aware Platform Admin navigation.
+
+It should expose relevant sections such as:
+
+Dashboard
+Organizations
+Organisation Verification
+Organisation Monitoring
+Users
+Tokens
+Job Moderation
+Analytics
+Support
+Notifications
+Audit Logs
+Reports
+
+Do not show Super Admin-exclusive navigation to ordinary Platform Admin users.
+
+Do not duplicate PlatformSidebar if the existing shared sidebar can render navigation based on permissions.
+
+==================================================
+DATABASE / PRISMA
+==================================================
+
+Inspect the existing Prisma schema FIRST.
+
+Reuse existing models where possible.
+
+Add only required models/fields.
+
+Possible new shared domains may require models for concepts such as:
+
+- Organisation verification/history
+- Support cases
+- Support activity/messages
+- Notifications
+- Job moderation records
+- Reports/export jobs if persistence is required
+
+Do NOT blindly create these if equivalent models already exist.
+
+Every database change must include:
+
+- Correct relations
+- Indexes
+- Constraints
+- Enums where appropriate
+- Migration
+- Created/updated timestamps
+- Actor/reference IDs where applicable
+
+Do not create duplicate User, Organisation, Job or Token models.
+
+==================================================
+PERMISSIONS
+==================================================
+
+Extend the existing permission architecture.
+
+Potential permissions include equivalents of:
+
+platform.organisations.read
+platform.organisations.create
+platform.organisations.update
+platform.organisations.verify
+platform.organisations.reject
+platform.organisations.suspend
+platform.organisations.reactivate
+platform.organisations.deactivate
+platform.organisations.members.read
+platform.organisations.activity.read
+
+platform.users.read
+platform.users.suspend
+platform.users.reactivate
+platform.users.activity.read
+
+platform.tokens.read
+platform.tokens.manage
+platform.tokens.allocate
+platform.tokens.adjust
+platform.tokens.sales.read
+
+platform.jobs.read
+platform.jobs.moderate
+platform.jobs.suspend
+
+platform.moderation.read
+
+platform.support.read
+platform.support.manage
+platform.support.escalate
+
+platform.analytics.read
+
+platform.notifications.read
+
+platform.audit.read
+
+platform.reports.generate
+platform.reports.export
+
+Follow existing naming conventions where they differ.
+
+==================================================
+API DESIGN
+==================================================
+
+Keep shared APIs under the existing Platform API hierarchy.
+
+Prefer:
+
+/api/v1/platform/...
+
+Examples:
+
+/platform/dashboard
+/platform/organisations
+/platform/organisations/:id
+/platform/organisations/:id/verification
+/platform/verifications
+/platform/users
+/platform/tokens
+/platform/moderation/jobs
+/platform/support
+/platform/notifications
+/platform/analytics
+/platform/audit-logs
+/platform/reports
+
+Do NOT create duplicated:
+
+/platform-admin/...
+
+and:
+
+/platform-super-admin/...
+
+for the same shared domain.
+
+Use permission guards instead.
+
+==================================================
+FRONTEND QUALITY
+==================================================
+
+The Platform Admin portal must be polished and consistent.
+
+Every major data page should correctly support, where applicable:
+
+- Loading state
+- Empty state
+- Error state
+- Search
+- Filtering
+- Pagination
+- Confirmation dialogs
+- Form validation
+- Permission-controlled actions
+- Responsive layout
+- Clear status badges
+- Success/error feedback
+
+Avoid giant React components.
+
+Reuse shared tables/forms/dialogs/components.
+
+Use the project's existing state/data architecture.
+
+If TanStack Query, React Hook Form, Zod, Zustand or shared services already exist, follow established project conventions rather than introducing another approach.
+
+==================================================
+REMOVE UNNECESSARY CODE
+==================================================
+
+Clean unnecessary code carefully.
+
+Remove ONLY code that is clearly:
+
+- Dead
+- Duplicated
+- Obsolete
+- Temporary development-only code that is no longer required
+- Unused mock code once real functionality replaces it
+- Unused imports/files
+
+DO NOT delete working Super Admin code.
+
+DO NOT perform large unrelated refactors.
+
+DO NOT rename or reorganize teammate files unnecessarily.
+
+If unsure whether something belongs to another developer, preserve it.
+
+==================================================
+NO FAKE PRODUCTION FUNCTIONALITY
+==================================================
+
+Do not pretend an integration works when it does not.
+
+Do not use fake statistics as production data.
+
+If Jobs, Applications, Interviews, Offers, Payment or another module is owned by another developer and not yet available:
+
+1. Create/reuse a clean interface/contract.
+2. Document the integration point.
+3. Keep the Admin feature ready to consume real data.
+4. Do not create a conflicting duplicate business domain.
+5. Clearly mark pending integration.
+
+==================================================
+FUTURE ORGANISATION SUPER ADMIN INTEGRATION
+==================================================
+
+The completed Platform Admin code must be easy for the Organisation Super Admin developer to connect to.
+
+Shared domain APIs should be clean.
+
+Organisation ownership/context must be clearly modeled.
+
+Document contracts for:
+
+- Organisation creation
+- Organisation activation
+- Organisation verification
+- Initial Organisation Admin/Super Admin provisioning
+- Organisation status
+- Organisation token information
+- Organisation users/members
+- Organisation jobs/recruitment data
+- Support escalation
+- Notifications
+
+Do NOT implement the Organisation Super Admin portal now.
+
+Only make our side integration-ready.
+
+==================================================
+SECURITY
+==================================================
+
+Backend must determine authenticated actor and authorization.
+
+Never trust client-supplied:
+
+- role
+- permissions
+- actorId
+- userId
+- organisationId as sole authorization
+- admin status
+
+All destructive/sensitive actions must have:
+
+- Authentication
+- Authorization
+- Validation
+- Audit logging
+- Safe errors
+
+Do not expose:
+
+- Secrets
+- Password hashes
+- Tokens
+- Internal stack traces
+- Raw infrastructure credentials
+
+==================================================
+TESTING
+==================================================
+
+Add/update tests for the functionality implemented.
+
+Critical cases include:
+
+- Platform Admin can access permitted features
+- Platform Admin cannot access Super Admin-only operations
+- Platform Admin cannot self-promote
+- Platform Admin cannot create Super Admin
+- Unauthorized organization verification is rejected
+- Organisation approval/rejection is audited
+- User suspension/reactivation authorization works
+- Token changes always create ledger entries
+- Token unauthorized modification is rejected
+- Moderation actions are audited
+- Support escalation works
+- Audit history cannot be mutated through Admin APIs
+- Export/report permission checks work
+- Organisation-level data cannot leak across authorization boundaries
+- Invalid input is rejected
+- Pagination/search/filtering works
+
+==================================================
+DOCUMENTATION
+==================================================
+
+Create/update Platform Admin documentation without overwriting Super Admin documentation.
+
+Document:
+
+- What was built
+- Shared code reused
+- Shared code modified
+- Admin-only code added
+- Database changes
+- APIs
+- Routes
+- Permissions
+- Security
+- Audit events
+- Tests
+- Environment variables
+- Integrations
+- Known limitations
+- Pending external modules
+- Organisation Super Admin integration points
+- Files created
+- Files modified
+
+Create a clear feature completion checklist covering ALL sections:
+
+3.1
+3.2
+3.3
+3.4
+3.5
+3.6
+3.7
+3.8
+3.9
+3.10
+3.11
+3.12
+3.13
+3.14
+
+Do not mark a feature complete unless it actually works.
+
+==================================================
+VALIDATION
+==================================================
+
+Before finishing run, where available:
+
+- npm build
+- TypeScript typecheck
+- lint
+- backend tests
+- frontend tests
+- Prisma validate
+- Prisma generate
+- migration validation
+
+Fix errors introduced by this implementation.
+
+Do not claim a test passed if it was not run successfully.
+
+==================================================
+FINAL DELIVERABLE
+==================================================
+
+Deliver a clean, working Platform Admin portal containing every required feature from sections 3.1 through 3.14 while preserving the existing working Platform Super Admin portal.
+
+At completion provide:
+
+1. Exact features completed
+2. Features reused from existing shared code
+3. New Platform Admin features
+4. Shared code modified
+5. Database changes
+6. API endpoints
+7. Frontend routes/pages
+8. Permissions
+9. Audit events
+10. Tests
+11. Pending external integrations
+12. Known limitations
+13. Organisation Super Admin handoff/integration notes
+14. Complete feature-by-feature checklist proving nothing from 3.1–3.14 was missed
+
+Most importantly:
+
+DO NOT BUILD A SECOND PLATFORM.
+
+DO NOT BREAK SUPER ADMIN.
+
+DO NOT DUPLICATE SHARED BUSINESS LOGIC.
+
+COMPLETE PLATFORM ADMIN CLEANLY ON TOP OF THE EXISTING SHARED PLATFORM ARCHITECTURE.
