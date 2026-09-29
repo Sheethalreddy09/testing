@@ -74,7 +74,7 @@ export function Support() {
 function SupportDetail({ id }: { id: string }) {
   const q = useResource(`support/${id}`);
   return (
-    <section className="bg-slate-900 p-5 rounded-xl space-y-3">
+    <section className="bg-surface p-5 rounded-xl space-y-3">
       {q.isError ? (
         <ErrorBox error={q.error} />
       ) : (
@@ -82,9 +82,9 @@ function SupportDetail({ id }: { id: string }) {
           <h2 className="font-semibold">{q.data?.subject || 'Loading…'}</h2>
           <p>{q.data?.description}</p>
           {q.data?.activities.map((a: any) => (
-            <div key={a.id} className="border-t border-slate-700 pt-3">
+            <div key={a.id} className="border-t border-line-strong pt-3">
               <p>{a.message}</p>
-              <small className="text-slate-400">
+              <small className="text-muted">
                 {a.actorId} · {a.nextStatus} · {new Date(a.createdAt).toLocaleString()}
               </small>
             </div>

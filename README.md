@@ -6,6 +6,7 @@ The project uses one React frontend and one NestJS backend. Both roles share the
 
 Quick start — existing setup
 
+<<<<<<< HEAD
 If dependencies are installed and your database and environment files are already configured, keep PostgreSQL running and open two PowerShell terminals at the project root.
 
 Terminal 1 — backend
@@ -438,3 +439,15 @@ Frontend style notes
 Latest Admin UX update and checks
 
 The latest Admin UX notes supersede older authentication and browser-validation descriptions in the earlier handoff.
+=======
+Jobs/recruitment and verified payment reporting need adapters supplied by the owning
+teams. The UI reports these domains as unavailable; it does not invent production data.
+
+## Separate Admin and Super Admin login update
+
+See `docs/platform-admin/LOGIN-UPDATE.md` for the September 29 login changes, how to apply them, and the rechecked 14-section feature status.
+
+## Warm frontend style update
+
+The active design now follows the warm Clyptus guide. See `docs/frontend-style/README.md` for the design tokens, apply instructions, validation and desktop/mobile previews.
+>>>>>>> cfdd951 (Update admin portal and README)

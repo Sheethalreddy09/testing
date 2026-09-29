@@ -1,14 +1,14 @@
-import { NotificationService } from '../notifications/notification.service';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import { UserRole } from '@prisma/client';
-import * as bcrypt from 'bcryptjs';
-import { createHash } from 'crypto';
-import { PrismaService } from '../../database/prisma.service';
-import { AuditService } from '../audit/audit.service';
-import { AuthenticatedUser } from '../../common/interfaces/authenticated-user.interface';
-import { PlatformLoginDto } from './dto/platform-login.dto';
+import { NotificationService } from "../notifications/notification.service";
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import { UserRole } from "@prisma/client";
+import * as bcrypt from "bcryptjs";
+import { createHash, randomUUID } from "crypto";
+import { PrismaService } from "../../database/prisma.service";
+import { AuditService } from "../audit/audit.service";
+import { AuthenticatedUser } from "../../common/interfaces/authenticated-user.interface";
+import { PlatformLoginDto } from "./dto/platform-login.dto";
 
 interface RequestContext {
   ipAddress?: string;
@@ -34,25 +34,29 @@ export class AuthService {
 
     // Use one generic message so callers cannot enumerate privileged accounts.
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     const isPlatformRole =
-      user.role === UserRole.PLATFORM_SUPER_ADMIN || user.role === UserRole.PLATFORM_ADMIN;
+      user.role === UserRole.PLATFORM_SUPER_ADMIN ||
+      user.role === UserRole.PLATFORM_ADMIN;
 
     if (!isPlatformRole) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException("Invalid email or password");
     }
 
-    const passwordMatches = await bcrypt.compare(dto.password, user.passwordHash);
+    const passwordMatches = await bcrypt.compare(
+      dto.password,
+      user.passwordHash,
+    );
     if (!passwordMatches) {
-      await this.recordFailedLogin(user.id, context, 'INVALID_PASSWORD');
-      throw new UnauthorizedException('Invalid email or password');
+      await this.recordFailedLogin(user.id, context, "INVALID_PASSWORD");
+      throw new UnauthorizedException("Invalid email or password");
     }
 
     if (!user.isActive) {
-      await this.recordFailedLogin(user.id, context, 'USER_INACTIVE');
-      throw new UnauthorizedException('Your platform account is inactive');
+      await this.recordFailedLogin(user.id, context, "USER_INACTIVE");
+      throw new UnauthorizedException("Your platform account is inactive");
     }
 
     if (
@@ -60,40 +64,50 @@ export class AuthService {
       user.platformAdminProfile &&
       !user.platformAdminProfile.isActive
     ) {
-      await this.recordFailedLogin(user.id, context, 'ADMIN_PROFILE_INACTIVE');
-      throw new UnauthorizedException('Your platform account is inactive');
+      await this.recordFailedLogin(user.id, context, "ADMIN_PROFILE_INACTIVE");
+      throw new UnauthorizedException("Your platform account is inactive");
+    }
+
+    if (dto.expectedRole && user.role !== dto.expectedRole) {
+      await this.recordFailedLogin(user.id, context, "LOGIN_SECTION_MISMATCH");
+      throw new UnauthorizedException(
+        "This account does not match the selected login section.",
+      );
     }
 
     const permissions =
       user.role === UserRole.PLATFORM_SUPER_ADMIN
-        ? ['*']
+        ? ["*"]
         : user.platformAdminProfile?.permissions || [];
 
     const jwtSecret = this.configService.get<string>(
-      'jwt.secret',
+      "jwt.secret",
       this.configService.get<string>(
-        'JWT_SECRET',
-        'super-secret-jwt-key-replace-in-production-min-32-chars-long',
+        "JWT_SECRET",
+        "super-secret-jwt-key-replace-in-production-min-32-chars-long",
       ),
     );
     const jwtExpiresIn = this.configService.get<string>(
-      'jwt.expiresIn',
-      this.configService.get<string>('JWT_EXPIRES_IN', '1d'),
+      "jwt.expiresIn",
+      this.configService.get<string>("JWT_EXPIRES_IN", "1d"),
     );
 
     const accessToken = await this.jwtService.signAsync(
       {
         sub: user.id,
+        jti: randomUUID(),
         email: user.email,
         role: user.role,
       },
       {
         secret: jwtSecret,
-        expiresIn: jwtExpiresIn as any,
+        expiresIn: (dto.rememberMe ? "30d" : jwtExpiresIn) as any,
       },
     );
 
-    const decoded = this.jwtService.decode(accessToken) as { exp?: number } | null;
+    const decoded = this.jwtService.decode(accessToken) as {
+      exp?: number;
+    } | null;
     const expiresAt = decoded?.exp
       ? new Date(decoded.exp * 1000)
       : new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -111,8 +125,8 @@ export class AuthService {
     await this.auditService.record({
       actorId: user.id,
       actorRole: user.role,
-      action: 'PLATFORM_LOGIN',
-      entityType: 'PLATFORM_SESSION',
+      action: "PLATFORM_LOGIN",
+      entityType: "PLATFORM_SESSION",
       entityId: session.id,
       metadata: { email: user.email },
       ipAddress: context.ipAddress,
@@ -144,7 +158,11 @@ export class AuthService {
     };
   }
 
-  async logout(token: string, actor: AuthenticatedUser, context: RequestContext = {}) {
+  async logout(
+    token: string,
+    actor: AuthenticatedUser,
+    context: RequestContext = {},
+  ) {
     const tokenHash = this.hashToken(token);
     const session = await this.prisma.platformSession.findUnique({
       where: { tokenHash },
@@ -159,8 +177,8 @@ export class AuthService {
       await this.auditService.record({
         actorId: actor.userId,
         actorRole: actor.role,
-        action: 'PLATFORM_LOGOUT',
-        entityType: 'PLATFORM_SESSION',
+        action: "PLATFORM_LOGOUT",
+        entityType: "PLATFORM_SESSION",
         entityId: session.id,
         metadata: {},
         ipAddress: context.ipAddress,
@@ -172,15 +190,19 @@ export class AuthService {
   }
 
   private hashToken(token: string): string {
-    return createHash('sha256').update(token).digest('hex');
+    return createHash("sha256").update(token).digest("hex");
   }
 
-  private async recordFailedLogin(actorId: string, context: RequestContext, reason: string) {
+  private async recordFailedLogin(
+    actorId: string,
+    context: RequestContext,
+    reason: string,
+  ) {
     try {
       const event = await this.prisma.securityEvent.create({
         data: {
-          eventType: 'PLATFORM_LOGIN_FAILED',
-          severity: 'LOW',
+          eventType: "PLATFORM_LOGIN_FAILED",
+          severity: "LOW",
           actorId,
           ipAddress: context.ipAddress || null,
           userAgent: context.userAgent?.substring(0, 500) || null,
@@ -190,10 +212,10 @@ export class AuthService {
       if (event?.id)
         await NotificationService.publish(
           this.prisma as any,
-          'platform.security.read',
-          'SECURITY',
-          'Failed platform login',
-          'SECURITY_EVENT',
+          "platform.security.read",
+          "SECURITY",
+          "Failed platform login",
+          "SECURITY_EVENT",
           event.id,
         );
     } catch {

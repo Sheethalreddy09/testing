@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
-import { PlatformAdminUser } from '../../../types/platform.types';
-import { AVAILABLE_PERMISSIONS } from './CreatePlatformAdminModal';
-import { PlatformService } from '../../../services/platform.service';
-import { buttonClass, ErrorBox } from '../../../components/platform/OperationsUI';
+import React, { useState } from "react";
+import { PlatformAdminUser } from "../../../types/platform.types";
+import { PermissionMatrix } from "./PermissionMatrix";
+import { PlatformService } from "../../../services/platform.service";
+import {
+  buttonClass,
+  secondaryButtonClass,
+  ErrorBox,
+} from "../../../components/platform/OperationsUI";
 export function AdminPermissions({
   admin,
   onSaved,
@@ -14,7 +18,7 @@ export function AdminPermissions({
     [selected, setSelected] = useState<string[]>([]),
     [error, setError] = useState<any>(),
     [busy, setBusy] = useState(false);
-  if (admin.role !== 'PLATFORM_ADMIN') return null;
+  if (admin.role !== "PLATFORM_ADMIN") return null;
   return (
     <>
       <button
@@ -28,14 +32,19 @@ export function AdminPermissions({
         Permissions: {admin.email}
       </button>
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/70 p-4 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-overlay p-4 flex items-center justify-center">
           <div
             role="dialog"
             aria-modal="true"
             aria-label="Edit Admin permissions"
-            className="bg-slate-900 rounded-xl p-6 max-w-xl w-full max-h-[90vh] overflow-auto"
+            className="permission-dialog"
           >
-            <h2 className="font-bold mb-3">Permissions for {admin.email}</h2>
+            <p className="eyebrow">Access control</p>
+            <h2 className="access-title">Assign Admin permissions</h2>
+            <p className="text-muted text-sm mb-5">
+              Choose access for {admin.firstName} {admin.lastName} (
+              {admin.email}).
+            </p>
             <form
               onSubmit={async (e) => {
                 e.preventDefault();
@@ -44,7 +53,7 @@ export function AdminPermissions({
                   await PlatformService.write(
                     `admins/${admin.id}`,
                     { permissions: selected },
-                    'patch',
+                    "patch",
                   );
                   setOpen(false);
                   onSaved();
@@ -55,36 +64,23 @@ export function AdminPermissions({
                 }
               }}
             >
-              <div className="space-y-2">
-                {AVAILABLE_PERMISSIONS.map((p) => (
-                  <label key={p.key} className="flex gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(p.key)}
-                      onChange={(e) =>
-                        setSelected(
-                          e.target.checked
-                            ? [...selected, p.key]
-                            : selected.filter((k) => k !== p.key),
-                        )
-                      }
-                    />
-                    {p.label}
-                  </label>
-                ))}
-              </div>
+              <PermissionMatrix
+                selected={selected}
+                onChange={setSelected}
+                disabled={busy}
+              />
               {error && <ErrorBox error={error} />}
               <div className="flex justify-end gap-2 mt-4">
                 <button
                   type="button"
-                  className={buttonClass}
+                  className={secondaryButtonClass}
                   disabled={busy}
                   onClick={() => setOpen(false)}
                 >
                   Cancel
                 </button>
                 <button className={buttonClass} disabled={busy}>
-                  {busy ? 'Saving…' : 'Save permissions'}
+                  {busy ? "Saving…" : "Save changes"}
                 </button>
               </div>
             </form>

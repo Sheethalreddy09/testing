@@ -99,7 +99,7 @@ export function Reports() {
             <p>{q.data.reason}</p>
           ) : (
             <>
-              <div className="overflow-auto border border-slate-800 rounded-xl">
+              <div className="overflow-auto border border-line rounded-xl">
                 <table className="w-full text-sm">
                   <thead>
                     <tr>
@@ -112,7 +112,7 @@ export function Reports() {
                   </thead>
                   <tbody>
                     {rows.map((r: any, i: number) => (
-                      <tr key={i} className="border-t border-slate-800">
+                      <tr key={i} className="border-t border-line">
                         {keys.map((k) => (
                           <td className="p-3" key={k}>
                             {show(r[k])}

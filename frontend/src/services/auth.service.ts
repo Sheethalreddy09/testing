@@ -1,5 +1,7 @@
-import { apiClient } from './api';
-import { UserRole } from '../types/platform.types';
+import { apiClient } from "./api";
+import { UserRole } from "../types/platform.types";
+
+export type PlatformLoginRole = "PLATFORM_SUPER_ADMIN" | "PLATFORM_ADMIN";
 
 export interface AuthUser {
   userId: string;
@@ -25,22 +27,29 @@ export const AuthService = {
     lastName: string;
     password: string;
   }) {
-    return apiClient.post('/auth/organisation-invitations/accept', payload);
+    return apiClient.post("/auth/organisation-invitations/accept", payload);
   },
-  async login(email: string, password: string): Promise<PlatformLoginResponse> {
-    const response: any = await apiClient.post('/auth/platform/login', {
+  async login(
+    email: string,
+    password: string,
+    expectedRole?: PlatformLoginRole,
+    rememberMe = false,
+  ): Promise<PlatformLoginResponse> {
+    const response: any = await apiClient.post("/auth/platform/login", {
       email,
       password,
+      rememberMe,
+      ...(expectedRole ? { expectedRole } : {}),
     });
     return unwrap<PlatformLoginResponse>(response);
   },
 
   async me(): Promise<AuthUser> {
-    const response: any = await apiClient.get('/auth/me');
+    const response: any = await apiClient.get("/auth/me");
     return unwrap<AuthUser>(response);
   },
 
   async logout(): Promise<void> {
-    await apiClient.post('/auth/logout');
+    await apiClient.post("/auth/logout");
   },
 };

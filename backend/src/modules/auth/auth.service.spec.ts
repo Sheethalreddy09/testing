@@ -111,6 +111,29 @@ describe('AuthService', () => {
     ).rejects.toThrow('Invalid email or password');
   });
 
+  it.each([UserRole.PLATFORM_ADMIN, UserRole.PLATFORM_SUPER_ADMIN] as const)(
+    'accepts %s only in the matching login section', async (role) => {
+      const user = await makeUser({ role });
+      prisma.user.findUnique.mockResolvedValue(user);
+      prisma.platformSession.create.mockResolvedValue({ id: 'matching-session' });
+      const result = await service.loginPlatform({ email: user.email, password: 'StrongPassword!123', expectedRole: role });
+      expect(result.user.role).toBe(role);
+      expect(prisma.platformSession.create).toHaveBeenCalledTimes(1);
+    },
+  );
+
+  it.each([UserRole.PLATFORM_ADMIN, UserRole.PLATFORM_SUPER_ADMIN] as const)(
+    'rejects %s in the opposite section without issuing a session', async (role) => {
+      const user = await makeUser({ role });
+      prisma.user.findUnique.mockResolvedValue(user);
+      const expectedRole = role === UserRole.PLATFORM_ADMIN ? UserRole.PLATFORM_SUPER_ADMIN : UserRole.PLATFORM_ADMIN;
+      await expect(service.loginPlatform({ email: user.email, password: 'StrongPassword!123', expectedRole }))
+        .rejects.toThrow('This account does not match the selected login section.');
+      expect(jwtService.signAsync).not.toHaveBeenCalled();
+      expect(prisma.platformSession.create).not.toHaveBeenCalled();
+    },
+  );
+
   it('revokes the current server-side session on logout', async () => {
     prisma.platformSession.findUnique.mockResolvedValue({
       id: 'session-3',

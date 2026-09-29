@@ -3,13 +3,19 @@
 // Used by Platform Super Admin and Platform Admin.
 // ============================================================
 
-import { create } from 'zustand';
-import { AuthService, AuthUser } from '../services/auth.service';
+import { create } from "zustand";
+import {
+  AuthService,
+  AuthUser,
+  PlatformLoginRole,
+} from "../services/auth.service";
 import {
   clearPlatformAccessToken,
   getPlatformAccessToken,
   setPlatformAccessToken,
-} from '../services/auth-session';
+  hasRememberedSession,
+  setRememberedSession,
+} from "../services/auth-session";
 
 interface AuthState {
   user: AuthUser | null;
@@ -17,7 +23,12 @@ interface AuthState {
   isHydrating: boolean;
   isAuthenticating: boolean;
   authError: string | null;
-  login: (email: string, password: string) => Promise<AuthUser>;
+  login: (
+    email: string,
+    password: string,
+    expectedRole?: PlatformLoginRole,
+    rememberMe?: boolean,
+  ) => Promise<AuthUser>;
   restoreSession: () => Promise<void>;
   logout: () => Promise<void>;
   clearSession: () => void;
@@ -27,15 +38,21 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   notificationsCount: 0,
-  isHydrating: Boolean(getPlatformAccessToken()),
+  isHydrating: Boolean(getPlatformAccessToken() || hasRememberedSession()),
   isAuthenticating: false,
   authError: null,
 
-  login: async (email, password) => {
+  login: async (email, password, expectedRole, rememberMe = false) => {
     set({ isAuthenticating: true, authError: null });
     try {
-      const result = await AuthService.login(email, password);
+      const result = await AuthService.login(
+        email,
+        password,
+        expectedRole,
+        rememberMe,
+      );
       setPlatformAccessToken(result.accessToken);
+      setRememberedSession(rememberMe);
       set({
         user: result.user,
         isAuthenticating: false,
@@ -45,7 +62,9 @@ export const useAuthStore = create<AuthState>((set) => ({
       return result.user;
     } catch (error: any) {
       clearPlatformAccessToken();
-      const message = error?.message || 'Unable to sign in to the Platform Portal';
+      setRememberedSession(false);
+      const message =
+        error?.message || "Unable to sign in to the Platform Portal";
       set({
         user: null,
         isAuthenticating: false,
@@ -58,7 +77,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   restoreSession: async () => {
     const token = getPlatformAccessToken();
-    if (!token) {
+    if (!token && !hasRememberedSession()) {
       set({ user: null, isHydrating: false });
       return;
     }
@@ -69,25 +88,28 @@ export const useAuthStore = create<AuthState>((set) => ({
       set({ user, isHydrating: false, authError: null });
     } catch {
       clearPlatformAccessToken();
+      setRememberedSession(false);
       set({ user: null, isHydrating: false });
     }
   },
 
   logout: async () => {
     try {
-      if (getPlatformAccessToken()) {
+      if (getPlatformAccessToken() || hasRememberedSession()) {
         await AuthService.logout();
       }
     } catch {
       // Local logout must still complete if the server session already expired/revoked.
     } finally {
       clearPlatformAccessToken();
+      setRememberedSession(false);
       set({ user: null, notificationsCount: 0, authError: null });
     }
   },
 
   clearSession: () => {
     clearPlatformAccessToken();
+    setRememberedSession(false);
     set({ user: null, notificationsCount: 0, isHydrating: false });
   },
 

@@ -1,0 +1,79 @@
+{
+  "results": [
+    {
+      "name": "clyptus-platform-portal-desktop",
+      "width": 1440,
+      "scroll": 1440,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "admin-login-desktop",
+      "width": 1440,
+      "scroll": 1440,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "super-admin-login-desktop",
+      "width": 1440,
+      "scroll": 1440,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "clyptus-platform-portal-mobile",
+      "width": 390,
+      "scroll": 390,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "admin-login-mobile",
+      "width": 390,
+      "scroll": 390,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "super-admin-login-mobile",
+      "width": 390,
+      "scroll": 390,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "dashboard-desktop",
+      "width": 1440,
+      "scroll": 1440,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "organizations-desktop",
+      "width": 1440,
+      "scroll": 1440,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "organization-dialog-desktop",
+      "width": 1440,
+      "scroll": 1440,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "dashboard-mobile",
+      "width": 390,
+      "scroll": 390,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "organizations-mobile",
+      "width": 390,
+      "scroll": 390,
+      "background": "rgb(250, 247, 242)"
+    },
+    {
+      "name": "organization-dialog-mobile",
+      "width": 390,
+      "scroll": 390,
+      "background": "rgb(250, 247, 242)"
+    }
+  ],
+  "runtimeErrors": [],
+  "reducedMotion": "PASS",
+  "mockedApi": true
+}

@@ -34,8 +34,10 @@ import { OrganisationInvitation } from '../pages/auth/OrganisationInvitation';
 export const AppRoutes: React.FC = () => (
   <Routes>
     <Route path="/organisation-invitation" element={<OrganisationInvitation />} />
-    <Route path="/" element={<Navigate to="/platform" replace />} />
-    <Route path="/platform/login" element={<PlatformLogin />} />
+    <Route path="/" element={<PlatformLogin key="landing-root" />} />
+    <Route path="/platform/login" element={<PlatformLogin key="landing" />} />
+    <Route path="/platform/login/admin" element={<PlatformLogin key="admin-login" loginRole="PLATFORM_ADMIN" />} />
+    <Route path="/platform/login/super-admin" element={<PlatformLogin key="super-admin-login" loginRole="PLATFORM_SUPER_ADMIN" />} />
 
     <Route element={<PlatformProtectedRoute />}>
       <Route path="/platform" element={<PlatformLayout />}>

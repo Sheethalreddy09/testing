@@ -13,7 +13,7 @@ export function Monitoring() {
           {
             key: 'name',
             render: (r) => (
-              <Link className="underline text-indigo-300" to={`/platform/organisations/${r.id}`}>
+              <Link className="underline text-action" to={`/platform/organisations/${r.id}`}>
                 {r.name}
               </Link>
             ),

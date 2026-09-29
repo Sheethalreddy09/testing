@@ -52,14 +52,14 @@ export const Security: React.FC = () => {
       {/* Title */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
+          <h1 className="text-2xl font-bold text-ink tracking-tight">
             Security & Incident Response
           </h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <p className="text-xs text-muted mt-1">
             Real-time anomaly detection, threat mitigation, and session governance.
           </p>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success-soft border border-success text-success text-xs font-semibold">
           <ShieldCheck className="w-4 h-4" />
           <span>MFA Enforced Globally</span>
         </div>
@@ -67,19 +67,19 @@ export const Security: React.FC = () => {
 
       {/* SECURITY STATS */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800">
-          <span className="text-xs text-slate-400">Total Security Incidents</span>
-          <div className="mt-2 text-2xl font-extrabold text-white font-mono">{events.length}</div>
+        <div className="p-5 rounded-xl bg-surface border border-line">
+          <span className="text-xs text-muted">Total Security Incidents</span>
+          <div className="mt-2 text-2xl font-extrabold text-ink font-mono">{events.length}</div>
         </div>
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800">
-          <span className="text-xs text-slate-400">Open Incidents</span>
-          <div className="mt-2 text-2xl font-extrabold text-amber-400 font-mono">
+        <div className="p-5 rounded-xl bg-surface border border-line">
+          <span className="text-xs text-muted">Open Incidents</span>
+          <div className="mt-2 text-2xl font-extrabold text-warning font-mono">
             {events.filter((e) => !e.isResolved).length}
           </div>
         </div>
-        <div className="p-5 rounded-xl bg-slate-900/60 border border-slate-800">
-          <span className="text-xs text-slate-400">Resolved Incidents</span>
-          <div className="mt-2 text-2xl font-extrabold text-emerald-400 font-mono">
+        <div className="p-5 rounded-xl bg-surface border border-line">
+          <span className="text-xs text-muted">Resolved Incidents</span>
+          <div className="mt-2 text-2xl font-extrabold text-success font-mono">
             {events.filter((e) => e.isResolved).length}
           </div>
         </div>

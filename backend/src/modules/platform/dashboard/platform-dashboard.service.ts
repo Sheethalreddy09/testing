@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../../database/prisma.service';
-import { AuthenticatedUser } from '../../../common/interfaces/authenticated-user.interface';
-import { can } from '../../../common/platform-policy';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../../database/prisma.service";
+import { AuthenticatedUser } from "../../../common/interfaces/authenticated-user.interface";
+import { can } from "../../../common/platform-policy";
 import {
   RecruitmentPort,
   PaymentReportingPort,
   RecruitmentSummary,
-} from '../contracts/platform-domains';
+} from "../contracts/platform-domains";
 @Injectable()
 export class PlatformDashboardService {
   constructor(
@@ -16,9 +16,9 @@ export class PlatformDashboardService {
   ) {}
   async getDashboardSummary(a: AuthenticatedUser) {
     const allowed = (p: string) => can(a, `platform.${p}`);
-    const org = allowed('organisations.read'),
-      users = allowed('users.read'),
-      tokens = allowed('tokens.read');
+    const org = allowed("organisations.read"),
+      users = allowed("users.read"),
+      tokens = allowed("tokens.read");
     const [
       total,
       active,
@@ -35,31 +35,43 @@ export class PlatformDashboardService {
       sales,
     ] = await Promise.all([
       org ? this.prisma.organisation.count() : null,
-      org ? this.prisma.organisation.count({ where: { status: 'ACTIVE' } }) : null,
+      org
+        ? this.prisma.organisation.count({ where: { status: "ACTIVE" } })
+        : null,
       org
         ? this.prisma.organisation.count({
-            where: { status: { in: ['PENDING_VERIFICATION', 'MORE_INFORMATION_REQUIRED'] } },
+            where: {
+              status: {
+                in: ["PENDING_VERIFICATION", "MORE_INFORMATION_REQUIRED"],
+              },
+            },
           })
         : null,
-      org ? this.prisma.organisation.count({ where: { status: 'SUSPENDED' } }) : null,
+      org
+        ? this.prisma.organisation.count({ where: { status: "SUSPENDED" } })
+        : null,
       users ? this.prisma.user.count() : null,
-      users ? this.prisma.user.count({ where: { role: 'CANDIDATE' } }) : null,
-      users ? this.prisma.user.count({ where: { role: 'RECRUITER' } }) : null,
+      users ? this.prisma.user.count({ where: { role: "CANDIDATE" } }) : null,
+      users ? this.prisma.user.count({ where: { role: "RECRUITER" } }) : null,
       tokens
         ? this.prisma.organisationTokenBalance.aggregate({
-            _sum: { balance: true, allocatedTokens: true, consumedTokens: true },
+            _sum: {
+              balance: true,
+              allocatedTokens: true,
+              consumedTokens: true,
+            },
           })
         : null,
-      allowed('support.read')
+      allowed("support.read")
         ? this.prisma.supportCase.count({
-            where: { status: { in: ['OPEN', 'IN_PROGRESS', 'ESCALATED'] } },
+            where: { status: { in: ["OPEN", "IN_PROGRESS", "ESCALATED"] } },
           })
         : null,
-      allowed('moderation.read') ? this.prisma.jobModeration.count() : null,
-      allowed('audit.read')
+      allowed("moderation.read") ? this.prisma.jobModeration.count() : null,
+      allowed("audit.read")
         ? this.prisma.auditLog.findMany({
-            take: 10,
-            orderBy: { createdAt: 'desc' },
+            take: 5,
+            orderBy: { createdAt: "desc" },
             select: {
               id: true,
               action: true,
@@ -67,15 +79,22 @@ export class PlatformDashboardService {
               entityId: true,
               createdAt: true,
               actorRole: true,
+              actor: {
+                select: { firstName: true, lastName: true, email: true },
+              },
+              organisation: { select: { name: true } },
             },
           })
         : [],
-      allowed('jobs.read')
+      allowed("jobs.read")
         ? this.recruitment.summary(a)
-        : ({ available: false, reason: 'Recruitment permission required' } as RecruitmentSummary),
-      allowed('tokens.sales.read')
+        : ({
+            available: false,
+            reason: "Recruitment permission required",
+          } as RecruitmentSummary),
+      allowed("tokens.sales.read")
         ? this.payments.sales(a)
-        : { available: false, reason: 'Token sales permission required' },
+        : { available: false, reason: "Token sales permission required" },
     ]);
     return {
       metrics: {
@@ -91,7 +110,9 @@ export class PlatformDashboardService {
         interviews: recruitment.available ? recruitment.interviews : null,
         offers: recruitment.available ? recruitment.offers : null,
         moderationQueue:
-          allowed('moderation.read') && recruitment.available ? recruitment.moderationQueue : null,
+          allowed("moderation.read") && recruitment.available
+            ? recruitment.moderationQueue
+            : null,
         supportQueue: support,
         moderationActions: moderation,
         tokenUsage: tokenMetrics ? tokenMetrics._sum.consumedTokens || 0 : null,

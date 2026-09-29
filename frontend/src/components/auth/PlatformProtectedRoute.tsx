@@ -8,9 +8,9 @@ export const PlatformProtectedRoute: React.FC = () => {
 
   if (isHydrating) {
     return (
-      <div className="min-h-screen bg-[#080d1a] text-slate-200 flex items-center justify-center">
-        <div className="flex items-center gap-3 text-sm text-slate-400">
-          <span className="h-5 w-5 rounded-full border-2 border-indigo-500 border-t-transparent animate-spin" />
+      <div className="min-h-screen bg-canvas text-ink flex items-center justify-center">
+        <div className="flex items-center gap-3 text-sm text-muted">
+          <span className="h-5 w-5 rounded-full border-2 border-brand border-t-transparent animate-spin" />
           Restoring secure platform session...
         </div>
       </div>

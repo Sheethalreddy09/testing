@@ -8,10 +8,10 @@
 //   and credentials before persisting.
 // ============================================================
 
-import { Injectable, Logger } from '@nestjs/common';
-import { Prisma, NotificationCategory } from '@prisma/client';
-import { NotificationService } from '../notifications/notification.service';
-import { PrismaService } from '../../database/prisma.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { Prisma, NotificationCategory } from "@prisma/client";
+import { NotificationService } from "../notifications/notification.service";
+import { PrismaService } from "../../database/prisma.service";
 
 export interface AuditRecordDto {
   actorId?: string | null;
@@ -44,39 +44,42 @@ export class AuditService {
 
   // Blacklist of sensitive keys that MUST never be recorded into audit metadata
   private readonly SENSITIVE_KEYS = new Set([
-    'password',
-    'passwordhash',
-    'token',
-    'accesstoken',
-    'refreshtoken',
-    'secret',
-    'jwtsecret',
-    'apikey',
-    'razorpaysecret',
-    'stripesecret',
-    'cvv',
-    'creditcard',
+    "password",
+    "passwordhash",
+    "token",
+    "accesstoken",
+    "refreshtoken",
+    "secret",
+    "jwtsecret",
+    "apikey",
+    "razorpaysecret",
+    "stripesecret",
+    "cvv",
+    "creditcard",
   ]);
 
   constructor(private readonly prisma: PrismaService) {}
 
-  async recordTx(tx: Prisma.TransactionClient, dto: AuditRecordDto): Promise<void> {
+  async recordTx(
+    tx: Prisma.TransactionClient,
+    dto: AuditRecordDto,
+  ): Promise<void> {
     await tx.auditLog.create({
       data: {
         ...dto,
         actorId: dto.actorId || null,
-        actorRole: dto.actorRole || 'SYSTEM',
+        actorRole: dto.actorRole || "SYSTEM",
         metadata: this.sanitizeMetadata(dto.metadata || {}),
       },
     });
     const routes: Record<string, [string, NotificationCategory]> = {
-      ORGANISATION: ['platform.organisations.read', 'VERIFICATION'],
-      SUPPORT: ['platform.support.read', 'SUPPORT'],
-      JOB: ['platform.moderation.read', 'MODERATION'],
-      TOKEN_LEDGER: ['platform.tokens.read', 'TOKEN'],
-      SECURITY: ['platform.security.read', 'SECURITY'],
-      PAYMENT: ['platform.tokens.sales.read', 'PAYMENT'],
-      USER: ['platform.users.read', 'PLATFORM'],
+      ORGANISATION: ["platform.organisations.read", "VERIFICATION"],
+      SUPPORT: ["platform.support.read", "SUPPORT"],
+      JOB: ["platform.moderation.read", "MODERATION"],
+      TOKEN_LEDGER: ["platform.tokens.read", "TOKEN"],
+      SECURITY: ["platform.security.read", "SECURITY"],
+      PAYMENT: ["platform.tokens.sales.read", "PAYMENT"],
+      USER: ["platform.users.read", "PLATFORM"],
     };
     const route = routes[dto.entityType];
     if (route)
@@ -84,7 +87,7 @@ export class AuditService {
         tx,
         route[0],
         route[1],
-        dto.action.replace(/_/g, ' '),
+        dto.action.replace(/_/g, " "),
         dto.entityType,
         dto.entityId,
       );
@@ -100,7 +103,7 @@ export class AuditService {
       await this.prisma.auditLog.create({
         data: {
           actorId: dto.actorId || null,
-          actorRole: dto.actorRole || 'SYSTEM',
+          actorRole: dto.actorRole || "SYSTEM",
           action: dto.action,
           entityType: dto.entityType,
           entityId: dto.entityId,
@@ -112,31 +115,32 @@ export class AuditService {
       });
 
       const category =
-        dto.entityType.includes('SECURITY') || dto.entityType === 'PLATFORM_SESSION'
-          ? 'SECURITY'
-          : dto.entityType.includes('TOKEN')
-            ? 'TOKEN'
-            : dto.entityType === 'ORGANISATION'
-              ? 'VERIFICATION'
-              : 'PLATFORM';
+        dto.entityType.includes("SECURITY") ||
+        dto.entityType === "PLATFORM_SESSION"
+          ? "SECURITY"
+          : dto.entityType.includes("TOKEN")
+            ? "TOKEN"
+            : dto.entityType === "ORGANISATION"
+              ? "VERIFICATION"
+              : "PLATFORM";
       const permission =
-        category === 'SECURITY'
-          ? 'platform.security.read'
-          : category === 'TOKEN'
-            ? 'platform.tokens.read'
-            : category === 'VERIFICATION'
-              ? 'platform.organisations.read'
-              : 'platform.audit.read';
+        category === "SECURITY"
+          ? "platform.security.read"
+          : category === "TOKEN"
+            ? "platform.tokens.read"
+            : category === "VERIFICATION"
+              ? "platform.organisations.read"
+              : "platform.audit.read";
       await NotificationService.publish(
         this.prisma as any,
         permission,
         category,
-        dto.action.replace(/_/g, ' '),
+        dto.action.replace(/_/g, " "),
         dto.entityType,
         dto.entityId,
       );
       this.logger.log(
-        `[AUDIT] Action: ${dto.action} on ${dto.entityType}:${dto.entityId} by ${dto.actorRole || 'SYSTEM'} (${dto.actorId || 'anon'})`,
+        `[AUDIT] Action: ${dto.action} on ${dto.entityType}:${dto.entityId} by ${dto.actorRole || "SYSTEM"} (${dto.actorId || "anon"})`,
       );
     } catch (err) {
       // Never allow audit logging failure to crash primary business flow, but log critical warning
@@ -157,13 +161,64 @@ export class AuditService {
 
     const where: any = {};
 
-    if (query.search)
+    const search = query.search?.trim();
+    const aliases: Record<string, string[]> = {
+      "signed in": ["PLATFORM_LOGIN"],
+      "signed out": ["PLATFORM_LOGOUT"],
+      "admin account created": ["PLATFORM_ADMIN_CREATED"],
+      "admin account updated": ["PLATFORM_ADMIN_UPDATED"],
+      "organization verified": [
+        "ORGANISATION_VERIFIED",
+        "ORGANISATION_VERIFICATION_APPROVE",
+      ],
+      "verification rejected": [
+        "ORGANISATION_VERIFICATION_REJECT",
+        "ORGANISATION_VERIFICATION_REJECTED",
+      ],
+      "more information requested": [
+        "ORGANISATION_VERIFICATION_REQUEST_INFO",
+        "ORGANISATION_VERIFICATION_INFORMATION_REQUESTED",
+      ],
+    };
+    const matchingActions = search
+      ? Object.entries(aliases)
+          .filter(([label]) => label.includes(search.toLowerCase()))
+          .flatMap(([, actions]) => actions)
+      : [];
+    if (search)
       where.OR = [
-        { action: { contains: query.search, mode: 'insensitive' } },
-        { entityId: { contains: query.search, mode: 'insensitive' } },
+        {
+          action: {
+            contains: search
+              .replace(/organization/gi, "organisation")
+              .replace(/\s+/g, "_"),
+            mode: "insensitive",
+          },
+        },
+        { actor: { is: { email: { contains: search, mode: "insensitive" } } } },
+        {
+          actor: {
+            is: { firstName: { contains: search, mode: "insensitive" } },
+          },
+        },
+        {
+          actor: {
+            is: { lastName: { contains: search, mode: "insensitive" } },
+          },
+        },
+        {
+          organisation: {
+            is: { name: { contains: search, mode: "insensitive" } },
+          },
+        },
+        { entityId: { contains: search, mode: "insensitive" } },
+        ...(matchingActions.length
+          ? [{ action: { in: matchingActions } }]
+          : []),
       ];
     if (query.actorId) where.actorId = query.actorId;
-    if (query.action) where.action = { contains: query.action, mode: 'insensitive' };
+    if (query.action)
+      where.action = { contains: query.action, mode: "insensitive" };
     if (query.entityType) where.entityType = query.entityType;
     if (query.entityId) where.entityId = query.entityId;
     if (query.organisationId) where.organisationId = query.organisationId;
@@ -180,7 +235,7 @@ export class AuditService {
         where,
         skip,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           actor: {
             select: {
@@ -217,20 +272,24 @@ export class AuditService {
    * Recursively strip out sensitive fields before persisting.
    */
   private sanitizeMetadata(data: Record<string, any>): Record<string, any> {
-    if (!data || typeof data !== 'object') {
+    if (!data || typeof data !== "object") {
       return {};
     }
 
     const result: Record<string, any> = {};
     for (const [key, value] of Object.entries(data)) {
-      const lowerKey = key.toLowerCase().replace(/[-_]/g, '');
+      const lowerKey = key.toLowerCase().replace(/[-_]/g, "");
       if (this.SENSITIVE_KEYS.has(lowerKey)) {
-        result[key] = '[REDACTED]';
+        result[key] = "[REDACTED]";
       } else if (Array.isArray(value)) {
         result[key] = value.map((item) =>
-          item && typeof item === 'object' ? this.sanitizeMetadata(item) : item,
+          item && typeof item === "object" ? this.sanitizeMetadata(item) : item,
         );
-      } else if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+      } else if (
+        typeof value === "object" &&
+        value !== null &&
+        !Array.isArray(value)
+      ) {
         result[key] = this.sanitizeMetadata(value);
       } else {
         result[key] = value;

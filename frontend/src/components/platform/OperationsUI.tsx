@@ -3,10 +3,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { useAuthStore } from '../../store/auth.store';
 import { PlatformService } from '../../services/platform.service';
-export const inputClass =
-  'w-full rounded-lg bg-slate-950 border border-slate-700 p-2.5 text-sm text-slate-100';
-export const buttonClass =
-  'rounded-lg px-3 py-2 text-sm bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white';
+export const inputClass = 'field-input';
+export const buttonClass = 'button button-primary button-small';
+export const secondaryButtonClass = 'button button-secondary button-small';
 export const label = (s: string) =>
   s
     .replace(/([a-z])([A-Z])/g, '$1 $2')
@@ -28,10 +27,10 @@ export function Page({
   children,
 }: React.PropsWithChildren<{ title: string; description?: string }>) {
   return (
-    <section className="space-y-5">
-      <div>
+    <section className="portal-page space-y-5">
+      <div className="portal-page-header">
         <h1 className="text-2xl font-bold">{title}</h1>
-        {description && <p className="text-slate-400 mt-2 text-sm">{description}</p>}
+        {description && <p className="text-muted mt-2 text-sm">{description}</p>}
       </div>
       {children}
     </section>
@@ -39,7 +38,7 @@ export function Page({
 }
 export function ErrorBox({ error, retry }: { error: any; retry?: () => void }) {
   return (
-    <div role="alert" className="p-4 rounded-xl bg-rose-950 border border-rose-800 text-rose-200">
+    <div role="alert" className="p-4 rounded-xl bg-danger-soft border border-danger text-danger">
       {error?.message || 'Unable to load data'}{' '}
       {retry && (
         <button className="underline ml-3" onClick={retry}>
@@ -134,18 +133,18 @@ export function Table({
         ))}
       </form>
       {query.isPending ? (
-        <p role="status" className="text-slate-400 p-6">
+        <p role="status" className="text-muted p-6">
           Loading…
         </p>
       ) : query.isError ? (
         <ErrorBox error={query.error} retry={() => query.refetch()} />
       ) : result?.available === false ? (
-        <p className="p-5 border border-amber-800 bg-amber-950/30 rounded-xl">{result.reason}</p>
+        <p className="p-5 border border-warning bg-warning-soft rounded-xl">{result.reason}</p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-slate-800">
+          <div className="overflow-x-auto rounded-xl border border-line">
             <table className="w-full text-sm text-left">
-              <thead className="bg-slate-900 text-slate-400">
+              <thead className="bg-surface text-muted">
                 <tr>
                   {columns.map((c) => (
                     <th key={c.key} className="p-3 font-medium">
@@ -157,7 +156,7 @@ export function Table({
               </thead>
               <tbody>
                 {rows.map((row: any, i: number) => (
-                  <tr key={row.id || row.organisationId || i} className="border-t border-slate-800">
+                  <tr key={row.id || row.organisationId || i} className="border-t border-line">
                     {columns.map((c) => (
                       <td key={c.key} className="p-3 max-w-xs break-words">
                         {c.render ? c.render(row) : show(row[c.key])}
@@ -174,7 +173,7 @@ export function Table({
                   <tr>
                     <td
                       colSpan={columns.length + (actions ? 1 : 0)}
-                      className="p-8 text-center text-slate-400"
+                      className="p-8 text-center text-muted"
                     >
                       No records found.
                     </td>
@@ -184,20 +183,20 @@ export function Table({
             </table>
           </div>
           {result?.meta && (
-            <div className="flex items-center justify-between text-sm text-slate-400">
+            <div className="table-pagination">
               <span>
                 {result.meta.total} records · Page {page} of {Math.max(1, result.meta.totalPages)}
               </span>
               <div className="flex gap-2">
                 <button
-                  className={buttonClass}
+                  className={secondaryButtonClass}
                   disabled={page <= 1 || query.isFetching}
                   onClick={() => setPage((p) => p - 1)}
                 >
                   Previous
                 </button>
                 <button
-                  className={buttonClass}
+                  className={secondaryButtonClass}
                   disabled={page >= result.meta.totalPages || query.isFetching}
                   onClick={() => setPage((p) => p + 1)}
                 >
@@ -266,17 +265,17 @@ export function Action({
         {title}
       </button>
       {notice && (
-        <span role="status" className="text-emerald-300 text-xs">
+        <span role="status" className="text-success text-xs">
           {notice}
         </span>
       )}
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/70 p-4 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 bg-overlay p-4 flex items-center justify-center">
           <div
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            className="bg-slate-900 border border-slate-700 rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-auto"
+            className="bg-surface border border-line-strong rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-auto"
           >
             <h2 className="font-bold text-lg mb-4">{title}</h2>
             <form className="space-y-4" onSubmit={form.handleSubmit((v) => mutation.mutate(v))}>
@@ -316,7 +315,7 @@ export function Action({
                     />
                   )}{' '}
                   {form.formState.errors[f.name] && (
-                    <span className="text-rose-300">
+                    <span className="text-danger">
                       Please enter a valid {f.label || label(f.name)}.
                     </span>
                   )}
@@ -326,7 +325,7 @@ export function Action({
               <div className="flex justify-end gap-3">
                 <button
                   type="button"
-                  className={buttonClass}
+                  className={secondaryButtonClass}
                   disabled={mutation.isPending}
                   onClick={() => setOpen(false)}
                 >
@@ -349,9 +348,9 @@ export function Metrics({ values }: { values: Record<string, any> }) {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
       {Object.entries(values).map(([k, v]) => (
-        <div key={k} className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-xs text-slate-400">{label(k)}</p>
-          <p className="mt-2 text-2xl font-semibold">
+        <div key={k} className="metric-card">
+          <p className="text-xs text-muted">{label(k)}</p>
+          <p className="metric-value">
             {v == null ? '—' : Number(v).toLocaleString()}
           </p>
         </div>

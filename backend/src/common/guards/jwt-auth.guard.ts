@@ -8,13 +8,15 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
-import { PrismaService } from '../../database/prisma.service';
-import { AuthenticatedUser } from '../interfaces/authenticated-user.interface';
-import { UserRole } from '@prisma/client';
-import { createHash } from 'crypto';
+  ForbiddenException,
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { ConfigService } from "@nestjs/config";
+import { PrismaService } from "../../database/prisma.service";
+import { AuthenticatedUser } from "../interfaces/authenticated-user.interface";
+import { UserRole } from "@prisma/client";
+import { createHash } from "crypto";
+import { platformToken } from "../platform-session-cookie";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -26,23 +28,35 @@ export class JwtAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers['authorization'] || request.headers['Authorization'];
-
-    if (!authHeader || typeof authHeader !== 'string') {
-      throw new UnauthorizedException('Authentication token is missing');
-    }
-
-    const [bearer, token] = authHeader.split(' ');
-    if (bearer !== 'Bearer' || !token) {
-      throw new UnauthorizedException('Invalid authorization token format');
+    const token = platformToken(request);
+    if (!token)
+      throw new UnauthorizedException(
+        "Authentication token is missing or invalid",
+      );
+    // Cookie-based writes require a custom header: cross-origin requests must pass CORS preflight.
+    if (
+      !request.headers.authorization &&
+      !["GET", "HEAD", "OPTIONS"].includes(request.method)
+    ) {
+      if (request.headers["x-requested-with"] !== "XMLHttpRequest") {
+        throw new ForbiddenException("Missing request verification header");
+      }
+      const allowed = [
+        this.configService.get<string>("corsOrigin", "http://localhost:5173"),
+        "http://localhost:5173",
+        "http://localhost:3000",
+      ];
+      if (request.headers.origin && !allowed.includes(request.headers.origin)) {
+        throw new ForbiddenException("Request origin is not allowed");
+      }
     }
 
     try {
       const secret = this.configService.get<string>(
-        'jwt.secret',
+        "jwt.secret",
         this.configService.get<string>(
-          'JWT_SECRET',
-          'super-secret-jwt-key-replace-in-production-min-32-chars-long',
+          "JWT_SECRET",
+          "super-secret-jwt-key-replace-in-production-min-32-chars-long",
         ),
       );
       const payload = this.jwtService.verify(token, { secret });
@@ -54,11 +68,13 @@ export class JwtAuthGuard implements CanActivate {
       });
 
       if (!user) {
-        throw new UnauthorizedException('User session invalid or user does not exist');
+        throw new UnauthorizedException(
+          "User session invalid or user does not exist",
+        );
       }
 
       if (!user.isActive) {
-        throw new UnauthorizedException('User account has been deactivated');
+        throw new UnauthorizedException("User account has been deactivated");
       }
 
       if (
@@ -66,11 +82,13 @@ export class JwtAuthGuard implements CanActivate {
         user.platformAdminProfile &&
         !user.platformAdminProfile.isActive
       ) {
-        throw new UnauthorizedException('Platform Admin account has been deactivated');
+        throw new UnauthorizedException(
+          "Platform Admin account has been deactivated",
+        );
       }
 
       // Bearer tokens are tied to PlatformSession so server-side revocation is enforceable.
-      const tokenHash = createHash('sha256').update(token).digest('hex');
+      const tokenHash = createHash("sha256").update(token).digest("hex");
       const session = await this.prisma.platformSession.findUnique({
         where: { tokenHash },
       });
@@ -81,7 +99,9 @@ export class JwtAuthGuard implements CanActivate {
         session.revokedAt ||
         session.expiresAt <= new Date()
       ) {
-        throw new UnauthorizedException('User session has expired or been revoked');
+        throw new UnauthorizedException(
+          "User session has expired or been revoked",
+        );
       }
 
       // Attach strongly-typed identity to request
@@ -91,7 +111,9 @@ export class JwtAuthGuard implements CanActivate {
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
-        permissions: user.platformAdminProfile?.permissions || (user.role === UserRole.PLATFORM_SUPER_ADMIN ? ['*'] : []),
+        permissions:
+          user.platformAdminProfile?.permissions ||
+          (user.role === UserRole.PLATFORM_SUPER_ADMIN ? ["*"] : []),
         organisationId: user.organisationId,
       };
 
@@ -101,7 +123,9 @@ export class JwtAuthGuard implements CanActivate {
       if (err instanceof UnauthorizedException) {
         throw err;
       }
-      throw new UnauthorizedException('Invalid or expired authentication token');
+      throw new UnauthorizedException(
+        "Invalid or expired authentication token",
+      );
     }
   }
 }

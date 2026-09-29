@@ -21,7 +21,7 @@ export function OrganisationDetails() {
   const org = q.data;
   return (
     <Page title={org.name} description={`${org.status} · ${org.contactEmail}`}>
-      <Link to="/platform/organisations" className="text-indigo-300">
+      <Link to="/platform/organisations" className="text-action">
         ← Organizations
       </Link>
       <div className="flex flex-wrap gap-2">
@@ -68,7 +68,7 @@ export function OrganisationDetails() {
       {can('platform.organisations.provision') && (
         <section className="space-y-3">
           <h2 className="font-semibold">Initial organization administrator</h2>
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-muted">
             Invite the initial Organization Super Admin. The invite can be accepted after
             verification. Expires in 72 hours.
           </p>
@@ -81,7 +81,7 @@ export function OrganisationDetails() {
             }
           />
           {invitation && (
-            <div className="p-4 bg-amber-950 rounded-lg break-all">
+            <div className="p-4 bg-warning-soft rounded-lg break-all">
               <p>
                 Copy this private invitation link now and deliver it securely to the intended
                 administrator:
@@ -89,7 +89,7 @@ export function OrganisationDetails() {
               <input
                 readOnly
                 aria-label="Invitation link"
-                className="w-full mt-2 bg-slate-950 p-2"
+                className="w-full mt-2 bg-canvas p-2"
                 value={invitation}
               />
               <button onClick={() => setInvitation('')} className="underline mt-2">
@@ -154,7 +154,7 @@ function Onboarding({ id }: { id: string }) {
   return q.isError ? (
     <ErrorBox error={q.error} />
   ) : (
-    <div className="text-sm text-slate-400">
+    <div className="text-sm text-muted">
       {q.data?.owner ? `Owner: ${q.data.owner.email}` : 'Owner not provisioned yet'}
       {q.data?.invitations?.map((r: any) => (
         <p key={r.id}>
@@ -188,7 +188,7 @@ function Monitor({ id }: { id: string }) {
           }
         />
       ) : (
-        <p className="text-slate-400">{q.data?.recruitment.reason || 'Loading…'}</p>
+        <p className="text-muted">{q.data?.recruitment.reason || 'Loading…'}</p>
       )}
     </section>
   );

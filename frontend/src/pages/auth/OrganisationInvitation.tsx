@@ -12,7 +12,7 @@ export function OrganisationInvitation() {
   const [error, setError] = useState<any>(),
     [done, setDone] = useState(false);
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-6 flex justify-center items-center">
+    <div className="min-h-screen bg-canvas text-ink p-6 flex justify-center items-center">
       <div className="max-w-lg w-full">
         <Page
           title="Set up your organization account"

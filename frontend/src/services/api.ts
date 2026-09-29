@@ -2,13 +2,18 @@
 // Clyptus Job Portal - Shared Platform API Client
 // ============================================================
 
-import axios, { AxiosInstance } from 'axios';
-import { clearPlatformAccessToken, getPlatformAccessToken } from './auth-session';
+import axios, { AxiosInstance } from "axios";
+import {
+  clearPlatformAccessToken,
+  getPlatformAccessToken,
+} from "./auth-session";
 
 export const apiClient: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api/v1',
+  baseURL: import.meta.env.VITE_API_URL || "/api/v1",
+  withCredentials: true,
   headers: {
-    'Content-Type': 'application/json',
+    "X-Requested-With": "XMLHttpRequest",
+    "Content-Type": "application/json",
   },
   timeout: 10000,
 });
@@ -28,14 +33,14 @@ apiClient.interceptors.response.use(
 
     if (status === 401) {
       clearPlatformAccessToken();
-      window.dispatchEvent(new CustomEvent('clyptus:platform-session-expired'));
+      window.dispatchEvent(new CustomEvent("clyptus:platform-session-expired"));
     }
 
     const serverError = error.response?.data?.error;
     const errorPayload = {
       ...(serverError || {
-        code: status ? `HTTP_${status}` : 'NETWORK_ERROR',
-        message: error.message || 'Failed to connect to platform API server',
+        code: status ? `HTTP_${status}` : "NETWORK_ERROR",
+        message: error.message || "Failed to connect to platform API server",
       }),
       status,
     };

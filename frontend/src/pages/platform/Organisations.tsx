@@ -40,7 +40,7 @@ export function Organisations() {
           {
             key: 'name',
             render: (r) => (
-              <Link className="text-indigo-300 underline" to={`/platform/organisations/${r.id}`}>
+              <Link className="text-action underline" to={`/platform/organisations/${r.id}`}>
                 {r.name}
               </Link>
             ),

@@ -70,11 +70,11 @@ export function TokenUsage() {
         columns={columns('feature', 'consumed', 'transactions')}
         search={false}
       />
-      <p className="text-xs text-slate-400">
+      <p className="text-xs text-muted">
         UNSPECIFIED means older ledger entries have no feature attribution.
       </p>
       <h2 className="font-semibold">Reconciliation</h2>
-      <p className="text-sm text-slate-400">
+      <p className="text-sm text-muted">
         Compare stored balances with the sum of ledger transactions. Differences require
         investigation; this view never rewrites balances.
       </p>

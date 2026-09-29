@@ -32,7 +32,7 @@ export function Analytics() {
       ) : (
         <>
           <Metrics values={q.data.operations.metrics} />
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-muted">
             Summary counts are current totals; token volumes use the selected period. Organization
             growth shows the last six months.
           </p>

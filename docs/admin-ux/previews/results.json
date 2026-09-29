@@ -1,0 +1,24 @@
+{
+  "screenshots": [
+    "admin-login-desktop",
+    "super-admin-login-desktop",
+    "admin-login-mobile",
+    "super-admin-login-mobile",
+    "dashboard-desktop",
+    "audit-desktop",
+    "audit-details-desktop",
+    "permissions-desktop",
+    "create-admin-desktop",
+    "dashboard-mobile",
+    "audit-mobile",
+    "audit-details-mobile",
+    "permissions-mobile",
+    "create-admin-mobile"
+  ],
+  "overflow": "PASS",
+  "activityLimit": 5,
+  "pagination": 20,
+  "permissionsSave": "PASS",
+  "runtimeErrors": [],
+  "mockedApi": true
+}

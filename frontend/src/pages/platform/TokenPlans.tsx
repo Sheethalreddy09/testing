@@ -56,15 +56,15 @@ export const TokenPlans: React.FC = () => {
       {/* Title */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">Token Plans & Pricing</h1>
-          <p className="text-xs text-slate-400 mt-1">
+          <h1 className="text-2xl font-bold text-ink tracking-tight">Token Plans & Pricing</h1>
+          <p className="text-xs text-muted mt-1">
             Configure platform token packages, pricing thresholds, and subscription tiers.
           </p>
         </div>
         {canManage && (
           <button
             onClick={() => setShowCreateModal(true)}
-            className="flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold shadow-lg shadow-emerald-600/30 transition-all"
+            className="flex items-center gap-2 px-3.5 py-2 bg-action hover:bg-action-hover text-on-action rounded-lg text-xs font-semibold shadow-none  transition-all"
           >
             <Plus className="w-4 h-4" />
             Create Token Plan
